@@ -266,6 +266,8 @@ The Rado number itself should always be in the set (otherwise instance is necess
     vector<vector<int>> relevant = {{0,8,5,1},{-1,8,5,1},{-2,8,5,1},{-3,8,5,1},{0,7,5,1},{0,6,5,1},{0,5,5,1},{0,8,4,1},{0,0,1,0},{0,0,2,0},{0,0,3,0},{0,0,4,0},{0,1,0,0},{0,2,0,0}
 ,{0,3,0,0},{0,0,1,1},{0,0,2,1},{0,0,3,1},{1,3,3,1},{1,2,3,1}};
 
+    vector<IntPoly> U; 
+
     for (auto p : relevant){
         if (properBound(p,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100))
         U.push_back(IntPoly(p));
