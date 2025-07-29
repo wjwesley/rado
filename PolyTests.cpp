@@ -123,7 +123,10 @@ class IntPoly{
     }
 
     bool operator==(IntPoly const& p){
-        return coeffs == p.coeffs; 
+        removeLeadingZeros(coeffs); 
+        vector<int> w = p.coeffs; 
+        removeLeadingZeros(w); 
+        return coeffs == w; 
     }
 
     void print() { 
@@ -294,7 +297,7 @@ The Rado number itself should always be in the set (otherwise instance is necess
                 IntPoly LHS = (x-y).multiplyX();
                 if (LHS.isRoot(-1)){
                     IntPoly z = LHS.divideByFactor(IntPoly({1,1}));
-                    if (find(U.begin(),U.end(),z) == U.end()){
+                    if (find(newU.begin(),newU.end(),z) == newU.end()){
                         if (properBound(z,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100)){ //whenever we add z to the set, need to check that it's bounded correctly 
                             newU.push_back(z);
                         }
@@ -316,7 +319,6 @@ The Rado number itself should always be in the set (otherwise instance is necess
     //generate new solutions by letting p(a), q(a) vary over the polynomials in U (or some other set). 
 
     // x^2 + y^2 = z^2 parametrized by x = (m-n), y = mn, z = (m+n) for integers m,n. e.g. m = 4, n = 1 : x = 3, y = 4, z = 5  
-
      while (iter < maxIter){
         vector<IntPoly> newU = U;
         for (int i = 0; i < U.size(); i++){
@@ -331,8 +333,12 @@ The Rado number itself should always be in the set (otherwise instance is necess
                 IntPoly x = p + z + q; 
 
                 if ((properBound(z,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100)) && (properBound(x,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100))){
-                    newU.push_back(z); 
-                    newU.push_back(x); 
+                    if (find(newU.begin(), newU.end(),z) == newU.end()){
+                        newU.push_back(z); 
+                    }
+                    if (find(newU.begin(), newU.end(),x) == newU.end()){
+                        newU.push_back(x); 
+                    }
                 }
                
             }
