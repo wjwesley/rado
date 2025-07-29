@@ -203,10 +203,120 @@ vector<IntPoly> bruteForceCubic(vector<int> L, vector<int> U){ //generates all i
     return S; 
 }
 
+/* gap method for a(x-y) = (a+1)z */
+    vector<IntPoly> generateFromGaps(vector<IntPoly> S, vector<IntPoly> G, int maxIter, IntPoly LB, IntPoly UB, int aLower, int aUpper, string filename, int numColors){
+        int iter = 0;
+        vector<IntPoly> newS = S; 
+        vector<IntPoly> newG = G;
+        vector<vector<IntPoly>> C; //clauses
+        while (iter < maxIter){
+            cout << "Iteration: " <<  iter << endl; 
+            cout << "S size: " << newS.size() << endl; 
+            for (IntPoly p : newS){
+                for (IntPoly q : newS){
+                    IntPoly r = p - q; 
+                    if (r.isRoot(-1)){
+                        r = r.divideByFactor(IntPoly({1,1})); 
+                        if (properBound(r,LB,UB,aLower,aUpper) && find(newG.begin(),newG.end(),r) == newG.end()){
+                            newG.push_back(r);
+                        }
+                    }   
+                }
+            }
+            vector<IntPoly> tmp = newS;
+            for (IntPoly p : tmp){
+                for (IntPoly q : newG){
+                    IntPoly r = p + q.multiplyX() + q;
+                    IntPoly s = p - q.multiplyX() - q;   
+                        if (properBound(r,LB,UB,aLower,aUpper) && find(newS.begin(),newS.end(),r) == newS.end()){
+                            newS.push_back(r);
+                        } 
+                        if (properBound(s,LB,UB,aLower,aUpper) && find(newS.begin(),newS.end(),s) == newS.end()){
+                            newS.push_back(s);
+                        }
+                }
+            }
+            iter++; 
+        }
+        cout << "finished iterating" << endl; 
+        vector<IntPoly> finalS = newS; 
+        cout << "S size: " << finalS.size() << endl; 
+        for (IntPoly p : newS){
+            for (IntPoly q : newG){
+                IntPoly x = p; 
+                IntPoly y = p - q.multiplyX() - q; 
+                IntPoly z = q.multiplyX(); // a(x - y) = (a+1)z
+                //x.print(); y.print(); z.print(); 
+                // cout << "hi" << endl;
+                // cout << properBound(x,LB,UB,aLower,aUpper) << endl;
+                // cout << properBound(y,LB,UB,aLower,aUpper) << endl;
+                // cout << properBound(z,LB,UB,aLower,aUpper) << endl;
+                if (properBound(x,LB,UB,aLower,aUpper) && properBound(y,LB,UB,aLower,aUpper) && properBound(z,LB,UB,aLower,aUpper)){
+                    //cout << "got here" << endl; 
+                    if (find(newS.begin(),newS.end(),x) == newS.end()){
+                            finalS.push_back(x);
+                    } 
+                    if (find(newS.begin(),newS.end(),y) == newS.end()){
+                            finalS.push_back(y);
+                    } 
+                    if (find(newS.begin(),newS.end(),z) == newS.end()){
+                            finalS.push_back(z);
+                    } 
+                    //cout << "adding clause" << endl; 
+                    C.push_back({x,y,z}); 
+                }
+            }
+        }
+        cout << "finished main loop" << endl; 
+        
+        cout << "C size: " << C.size() << endl;
+
+        ofstream file(filename);
+
+        //unordered_map<IntPoly,int> f; 
+        file << "p cnf 1 1\n";
+        for (int i = 0; i < finalS.size(); i++){
+            //f[finalS[i]] = i; 
+            for (int c = 0; c < numColors; c++){ //pos clauses
+                file << (i+1)*numColors - c << " ";
+            }
+            file << "0\n"; 
+        }
+
+
+        
+        for (vector<IntPoly> clause : C){ // neg clauses
+            for (int i = 0; i < numColors; i++){
+                IntPoly px = clause[0];
+                IntPoly py = clause[1];
+                IntPoly pz = clause[2];
+
+                int pxi = find(finalS.begin(),finalS.end(),px) - finalS.begin();
+                int pyi = find(finalS.begin(),finalS.end(),py) - finalS.begin();
+                int pzi = find(finalS.begin(),finalS.end(),pz) - finalS.begin();
+
+                int x = pxi + 1; 
+                int y = pyi + 1;
+                int z = pzi + 1;
+                file << -1*(numColors*x - i) << " " << -1*(numColors*y - i) << " " << -1*(numColors*z - i) << " 0" << endl; 
+            }
+        }
+        file.close();
+        return finalS; 
+    }
+
 int main(){
-    IntPoly f({24,42,27,18,15,6});
-    IntPoly g({4,5,2});
-    // f.divideByFactor(g).print();
+
+    IntPoly LB = IntPoly({1,0,0,0}); 
+    IntPoly UB = IntPoly({0,8,5,1}); 
+    int maxIterations = 2; 
+    int aLower = 10; 
+    int aUpper = 50; 
+    int numColors = 3;
+    vector<IntPoly> SDiag = {IntPoly({1,0,0,0}),IntPoly({0,1,0,0}),IntPoly({0,2,0,0}),IntPoly({0,0,1,0}), IntPoly({0,0,0,1}),UB}; 
+    vector<IntPoly> GDiag = {IntPoly({0,1,0,0})}; 
+    generateFromGaps(SDiag, GDiag , maxIterations, LB, UB, aLower, aUpper, "redDiag.cnf", numColors);
+
 
 //Upper bound: goal is to show that R_3(a(x-y) = (a+1)z) <= a^3+5a^2+8a for a>=7
 //Generation tests: generate a set U of polynomials that
@@ -284,7 +394,7 @@ The Rado number itself should always be in the set (otherwise instance is necess
     */
     
     int iter = 0;
-    int maxIter = 2;
+    int maxIter = 0;
     while (iter < maxIter){
         vector<IntPoly> newU = U;
         for (int i = 0; i < U.size(); i++){
@@ -319,6 +429,7 @@ The Rado number itself should always be in the set (otherwise instance is necess
     //generate new solutions by letting p(a), q(a) vary over the polynomials in U (or some other set). 
 
     // x^2 + y^2 = z^2 parametrized by x = (m-n), y = mn, z = (m+n) for integers m,n. e.g. m = 4, n = 1 : x = 3, y = 4, z = 5  
+     iter = 0; 
      while (iter < maxIter){
         vector<IntPoly> newU = U;
         for (int i = 0; i < U.size(); i++){
