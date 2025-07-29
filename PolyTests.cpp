@@ -273,7 +273,7 @@ The Rado number itself should always be in the set (otherwise instance is necess
         U.push_back(IntPoly(p));
     }
     
-    
+   
     
 
 
@@ -294,8 +294,10 @@ The Rado number itself should always be in the set (otherwise instance is necess
                 IntPoly LHS = (x-y).multiplyX();
                 if (LHS.isRoot(-1)){
                     IntPoly z = LHS.divideByFactor(IntPoly({1,1}));
-                    if (properBound(z,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100)){ //whenever we add z to the set, need to check that it's bounded correctly 
-                        newU.push_back(z);
+                    if (find(U.begin(),U.end(),z) == U.end()){
+                        if (properBound(z,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100)){ //whenever we add z to the set, need to check that it's bounded correctly 
+                            newU.push_back(z);
+                        }
                     }
                 }
                
@@ -305,6 +307,41 @@ The Rado number itself should always be in the set (otherwise instance is necess
         cout << "U size: " << U.size() << endl; 
         iter++;
     }
+
+    //another method for generation: 
+    //Solutions to a(x-y) = (a+1)z: parameterized by y = p(a) [p(a) is a polynomial in the variable a], z = a*q(a). Then x = p(a) + (a+1)*q(a). This works for arbitrary p(a), q(a). 
+    //all solutions are of the form x = p(a) + (a+1)*q(a), y = p(a), z = a*q(a)
+
+    // e.g. p(a) = a+2, q(a) = a^2. Then y = a + 2, z = a^3, x = a + 2 + (a+1)*a^2 is a solution to a(x-y) = (a+1)z. 
+    //generate new solutions by letting p(a), q(a) vary over the polynomials in U (or some other set). 
+
+    // x^2 + y^2 = z^2 parametrized by x = (m-n), y = mn, z = (m+n) for integers m,n. e.g. m = 4, n = 1 : x = 3, y = 4, z = 5  
+
+     while (iter < maxIter){
+        vector<IntPoly> newU = U;
+        for (int i = 0; i < U.size(); i++){
+            for (int j = 0; j < U.size(); j++){
+                //cout << "i j = " << i << " " << j << endl; 
+                IntPoly p = U[i];
+                IntPoly q = U[j];
+                //x.print(); 
+                //y.print(); 
+                IntPoly y = p; 
+                IntPoly z = q.multiplyX();
+                IntPoly x = p + z + q; 
+
+                if ((properBound(z,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100)) && (properBound(x,IntPoly({1,0,0,0}),IntPoly({0,8,5,1}),10,100))){
+                    newU.push_back(z); 
+                    newU.push_back(x); 
+                }
+               
+            }
+        }
+        U = newU; 
+        cout << "U size: " << U.size() << endl; 
+        iter++;
+    }
+
 
      //test different possibilities for the set U
 
