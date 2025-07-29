@@ -203,7 +203,7 @@ vector<IntPoly> bruteForceCubic(vector<int> L, vector<int> U){ //generates all i
 int main(){
     IntPoly f({24,42,27,18,15,6});
     IntPoly g({4,5,2});
-    f.divideByFactor(g).print();
+    // f.divideByFactor(g).print();
 
 //Upper bound: goal is to show that R_3(a(x-y) = (a+1)z) <= a^3+5a^2+8a for a>=7
 //Generation tests: generate a set U of polynomials that
@@ -264,7 +264,7 @@ The Rado number itself should always be in the set (otherwise instance is necess
 
     //some polynomials that appear in the proof 
     vector<vector<int>> relevant = {{0,8,5,1},{-1,8,5,1},{-2,8,5,1},{-3,8,5,1},{0,7,5,1},{0,6,5,1},{0,5,5,1},{0,8,4,1},{0,0,1,0},{0,0,2,0},{0,0,3,0},{0,0,4,0},{0,1,0,0},{0,2,0,0}
-,{0,3,0,0},{0,0,1,1},{0,0,2,1},{0,0,3,1},{1,3,3,1},{1,2,3,1}};
+,{0,3,0,0},{0,0,1,1},{0,0,2,1},{0,0,3,1},{1,3,3,1},{1,2,3,1},{0,4,0,0},{1,0,0,0}};
 
     vector<IntPoly> U; 
 
@@ -342,5 +342,12 @@ The Rado number itself should always be in the set (otherwise instance is necess
 
 
     cnffile.close(); 
+
+    // Print out the polynomials in U
+    int cnt = 1;
+    for (auto i: U) {
+        cout << cnt++ << ", " << cnt++ << ", " << cnt++ << ": ";
+        i.print();
+    }
     return 0; 
 }
